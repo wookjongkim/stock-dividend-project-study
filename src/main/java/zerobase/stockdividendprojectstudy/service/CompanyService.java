@@ -2,7 +2,9 @@ package zerobase.stockdividendprojectstudy.service;
 
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.apache.commons.collections4.Trie;
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
@@ -21,6 +23,7 @@ import java.util.stream.Collectors;
 @AllArgsConstructor
 public class CompanyService {
 
+    private final Trie trie; // 스프링부트 빈이기에 Singleton으로 관리되고 따라서 한개의 Trie만을 가짐
     private final Scraper yahooFinanceScraper;
     private final CompanyRepository companyRepository;
     private final DividendRepository dividendRepository;
@@ -56,5 +59,26 @@ public class CompanyService {
         this.dividendRepository.saveAll(dividendEntities);
 
         return company;
+    }
+
+    public List<String> getCompanyNamesByKeyword(String keyword){
+        Pageable limit = PageRequest.of(0,10);
+        Page<CompanyEntity> companyEntities = companyRepository.findByNameStartingWithIgnoreCase(keyword, limit);
+        return companyEntities.stream()
+                .map(e -> e.getName())
+                .collect(Collectors.toList());
+    }
+    public void addAutoCompleteKeyWord(String keyword){
+        trie.put(keyword, null);
+    }
+
+    // 갯수가 많을것을 대비해 갯수제한하는 것도 좋은 방법일 듯
+    public List<String> autoComplete(String keyword){
+        return (List<String>) trie.prefixMap(keyword).keySet()
+                .stream().collect(Collectors.toList());
+    }
+
+    public void deleteAutoCompleteKeyword(String keyword){
+        this.trie.remove(keyword);
     }
 }
