@@ -2,6 +2,8 @@ package zerobase.stockdividendprojectstudy.service;
 
 import lombok.AllArgsConstructor;
 import lombok.RequiredArgsConstructor;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
 import zerobase.stockdividendprojectstudy.model.Company;
@@ -16,7 +18,7 @@ import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
-@RequiredArgsConstructor
+@AllArgsConstructor
 public class CompanyService {
 
     private final Scraper yahooFinanceScraper;
@@ -31,6 +33,10 @@ public class CompanyService {
         return this.storeCompanyAndDividend(ticker);
     }
 
+    public Page<CompanyEntity> getAllCompany(Pageable pageable){
+        // findAll은 데이터 갯수가 많으면, 이를 다 가져와야 할까?
+        return this.companyRepository.findAll(pageable);
+    }
     private Company storeCompanyAndDividend(String ticker){
         // ticker를 기준으로 회사를 스크래핑
         Company company = this.yahooFinanceScraper.scrapCompanyByTicker(ticker);
