@@ -44,5 +44,4 @@ public class StockDividendProjectStudyApplication {
             throw new RuntimeException(e);
         }
     }
-
 }
