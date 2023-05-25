@@ -8,6 +8,7 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import zerobase.stockdividendprojectstudy.exception.Impl.NoCompanyException;
 import zerobase.stockdividendprojectstudy.model.Company;
 import zerobase.stockdividendprojectstudy.model.ScrapedResult;
 import zerobase.stockdividendprojectstudy.persist.CompanyRepository;
@@ -85,7 +86,7 @@ public class CompanyService {
 
     public String deleteCompany(String ticker){
         var company = companyRepository.findByTicker(ticker)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 회사입니다."));
+                .orElseThrow(() -> new NoCompanyException());
         dividendRepository.deleteAllByCompanyId(company.getId());
         companyRepository.delete(company);
 

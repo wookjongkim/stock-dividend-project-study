@@ -7,6 +7,7 @@ import org.springframework.security.core.userdetails.UserDetailsService;
 import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
+import zerobase.stockdividendprojectstudy.exception.Impl.AlreadyExistUserException;
 import zerobase.stockdividendprojectstudy.model.Auth;
 import zerobase.stockdividendprojectstudy.persist.entity.MemberEntity;
 import zerobase.stockdividendprojectstudy.persist.MemberRepository;
@@ -28,7 +29,7 @@ public class MemberService implements UserDetailsService {
     public MemberEntity register(Auth.SignUp member){
         boolean exists = memberRepository.existsByUsername(member.getUsername());
         if(exists){
-            throw new RuntimeException("이미 사용 중인 아이디 입니다.");
+            throw new AlreadyExistUserException();
         }
 
         // member를 db에 저장할때, Singup의 Password를 Db에 그대로 저장되면 보안 이슈 있을수있다.

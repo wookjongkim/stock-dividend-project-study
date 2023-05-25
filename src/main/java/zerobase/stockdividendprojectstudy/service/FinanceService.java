@@ -4,6 +4,7 @@ import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.cache.annotation.Cacheable;
 import org.springframework.stereotype.Service;
+import zerobase.stockdividendprojectstudy.exception.Impl.NoCompanyException;
 import zerobase.stockdividendprojectstudy.model.Company;
 import zerobase.stockdividendprojectstudy.model.Dividend;
 import zerobase.stockdividendprojectstudy.model.ScrapedResult;
@@ -36,7 +37,7 @@ public class FinanceService {
         log.info("serach company -> " + companyName);
         // 1. 회사명을 기준으로 회사 정보를 조회
         CompanyEntity company = companyRepository.findByName(companyName)
-                .orElseThrow(() -> new RuntimeException("존재하지 않는 회사명입니다."));
+                .orElseThrow(() -> new NoCompanyException());
 
         // 2. 조회된 회사의 아이디로 배당금 조회
         List<DividendEntity> dividendEntities = dividendRepository.findAllByCompanyId(company.getId());
