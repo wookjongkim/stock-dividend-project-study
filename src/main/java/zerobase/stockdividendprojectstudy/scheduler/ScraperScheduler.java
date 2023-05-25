@@ -2,10 +2,13 @@ package zerobase.stockdividendprojectstudy.scheduler;
 
 import lombok.AllArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.cache.annotation.CacheEvict;
+import org.springframework.cache.annotation.EnableCaching;
 import org.springframework.scheduling.annotation.Scheduled;
 import org.springframework.stereotype.Component;
 import zerobase.stockdividendprojectstudy.model.Company;
 import zerobase.stockdividendprojectstudy.model.ScrapedResult;
+import zerobase.stockdividendprojectstudy.model.constants.CacheKey;
 import zerobase.stockdividendprojectstudy.persist.CompanyRepository;
 import zerobase.stockdividendprojectstudy.persist.DividendRepository;
 import zerobase.stockdividendprojectstudy.persist.entity.CompanyEntity;
@@ -17,6 +20,7 @@ import java.util.List;
 @Slf4j
 @Component
 @AllArgsConstructor
+@EnableCaching
 public class ScraperScheduler {
 
     private final CompanyRepository companyRepository;
@@ -24,7 +28,8 @@ public class ScraperScheduler {
     private final DividendRepository dividendRepository;
 
     // 일정 주기마다 진행
-//    @Scheduled(cron = "${scheduler.scrap.yahoo}")
+    @CacheEvict(value = CacheKey.KEY_FINANCE, allEntries = true)
+    @Scheduled(cron = "${scheduler.scrap.yahoo}")
     public void yahooFianceScheduling() {
         log.info("scraping scheduler is started");
         // 저장되어 있는 회사 목록을 조회
@@ -33,10 +38,7 @@ public class ScraperScheduler {
         for (var company : companies) {
             log.info("scraping scheduler is started -> " + company.getName());
             ScrapedResult scrapedResult = yahooFinanceScraper.scrap(
-                    Company.builder()
-                            .name(company.getName())
-                            .ticker(company.getTicker())
-                            .build()
+                    new Company(company.getTicker(), company.getName())
             );
 
             // 스크래핑한 방금 정보 중 Db에 없는 값은 저장
@@ -74,4 +76,5 @@ public class ScraperScheduler {
     // 이를 해결하기 위해서는 여러개의 스레드를 관리하는 Thread pool이 필요
     // Thread Pool 없이 계속 생성, 삭제하는것은 비용이 많이 듬
     // CPU처리가 많거나(N+1), IO 작업이 많은 경우(N*2)
+    // 위의 코드를 좀더 효율적으로 사용하려면 Spring Batch가 유용함
 }
