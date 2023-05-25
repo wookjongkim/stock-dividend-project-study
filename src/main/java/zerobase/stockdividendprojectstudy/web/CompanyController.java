@@ -39,7 +39,7 @@ public class CompanyController {
     }
 
     @PostMapping
-    @PreAuthorize("hasRole('WRITE')")
+//    @PreAuthorize("hasRole('WRITE')")
     public ResponseEntity<?> addCompany(@RequestBody Company request) {
         String ticker = request.getTicker().trim();
         if(ObjectUtils.isEmpty(ticker)){

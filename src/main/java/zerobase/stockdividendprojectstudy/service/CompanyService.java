@@ -8,7 +8,9 @@ import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.util.ObjectUtils;
+import zerobase.stockdividendprojectstudy.exception.Impl.AlreadyExistCompanyException;
 import zerobase.stockdividendprojectstudy.exception.Impl.NoCompanyException;
+import zerobase.stockdividendprojectstudy.exception.Impl.NoSuchTickerException;
 import zerobase.stockdividendprojectstudy.model.Company;
 import zerobase.stockdividendprojectstudy.model.ScrapedResult;
 import zerobase.stockdividendprojectstudy.persist.CompanyRepository;
@@ -17,6 +19,7 @@ import zerobase.stockdividendprojectstudy.persist.entity.CompanyEntity;
 import zerobase.stockdividendprojectstudy.persist.entity.DividendEntity;
 import zerobase.stockdividendprojectstudy.scraper.Scraper;
 
+import java.rmi.AlreadyBoundException;
 import java.util.List;
 import java.util.Optional;
 import java.util.stream.Collectors;
@@ -33,7 +36,7 @@ public class CompanyService {
     public Company save(String ticker){
         boolean exists = this.companyRepository.existsByTicker(ticker);
         if(exists){
-            throw new RuntimeException("already exists ticker -> " + ticker);
+            throw new AlreadyExistCompanyException();
         }
         return this.storeCompanyAndDividend(ticker);
     }
@@ -43,10 +46,16 @@ public class CompanyService {
         return this.companyRepository.findAll(pageable);
     }
     private Company storeCompanyAndDividend(String ticker){
+        Company company;
         // ticker를 기준으로 회사를 스크래핑
-        Company company = this.yahooFinanceScraper.scrapCompanyByTicker(ticker);
+        try{
+            company = this.yahooFinanceScraper.scrapCompanyByTicker(ticker);
+        }catch (IndexOutOfBoundsException e){
+            throw new NoSuchTickerException();
+        }
+
         if(ObjectUtils.isEmpty(company)){
-            throw new RuntimeException("failed to scrap ticker -> " + ticker);
+            throw new NoSuchTickerException();
         }
 
         // 해당 회사가 존재할 경우, 회사 배당금 정보 스크래핑
